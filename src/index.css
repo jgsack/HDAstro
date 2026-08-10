@@ -1,0 +1,100 @@
+:root {
+  color-scheme: dark;
+
+  --bg: #0a0e1a;
+  --bg-elevated: #11172a;
+  --card-bg: #131a2e;
+  --card-border: #253150;
+  --text-main: #e2e8f0;
+  --text-heading: #f8fafc;
+  --text-muted: #8896b3;
+  --accent: #6d5efc;
+  --hd-accent: #8b5cf6;
+  --input-bg: #0d1223;
+
+  /* Wheel */
+  --wheel-bg: #0d1326;
+  --wheel-inner: #0a0e1a;
+  --wheel-border: #2c3860;
+  --sign-fg1: #c7d2fe;
+  --sign-fg2: #93a3d6;
+  --house-bg: #101830;
+  --house-num: #6b7aa3;
+  --angular-color: #6d8bf8;
+  --angular-label: #a5b8ff;
+  --planet-fg: #f1f5f9;
+  --retro-color: #f87171;
+
+  /* Bodygraph */
+  --center-defined: #4c3fd6;
+  --center-defined-border: #8b7ffc;
+  --center-open: transparent;
+  --center-open-border: #3a4770;
+  --center-text-defined: #e9e5ff;
+  --center-text-open: #6b7aa3;
+  --channel-defined: #8b7ffc;
+  --channel-open: #1a2340;
+  --personality-gate: #f1f5f9;
+  --design-gate: #f87171;
+  --gate-inactive: #3a4770;
+  /* Gate badges always sit on a light circle regardless of theme, so their text
+     needs its own dark, high-contrast colors — --personality-gate/--design-gate
+     above are tuned for text on the dark app background instead. */
+  --badge-personality-text: #16213e;
+  --badge-design-text: #a5231b;
+
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text-main);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg: #f5f6fb;
+    --bg-elevated: #ffffff;
+    --card-bg: #ffffff;
+    --card-border: #e2e6f0;
+    --text-main: #1e2433;
+    --text-heading: #0b0e17;
+    --text-muted: #667;
+    --input-bg: #f0f2f9;
+
+    --wheel-bg: #ffffff;
+    --wheel-inner: #f8f9fd;
+    --wheel-border: #ccd3e8;
+    --sign-fg1: #3730a3;
+    --sign-fg2: #4c4faa;
+    --house-bg: #f2f3fb;
+    --house-num: #6b7aa3;
+    --planet-fg: #1e2433;
+
+    --center-open-border: #b9c2de;
+    --center-text-open: #6b7aa3;
+    --channel-open: #e5e9f5;
+    --personality-gate: #1e2433;
+    --gate-inactive: #b9c2de;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  color: var(--text-heading);
+  font-weight: 600;
+}
+
+table {
+  border-collapse: collapse;
+}
