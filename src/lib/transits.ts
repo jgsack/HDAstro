@@ -1,5 +1,5 @@
 import { Origin, Horoscope } from "circular-natal-horoscope-js";
-import type { NatalChart, PlanetData } from "./natalChart";
+import type { NatalChart } from "./natalChart";
 import type { HDChart } from "./humanDesign/chart";
 import { longitudeToGateLine, GATE_NAMES } from "./humanDesign/gateTable";
 import { CHANNELS } from "./humanDesign/centersChannels";

@@ -18,13 +18,6 @@ const ASPECT_SYMBOL: Record<string, string> = {
   conjunction: "☌", opposition: "☍", trine: "△", square: "□", sextile: "⚹",
 };
 
-const PLANET_GLYPH: Record<string, string> = {
-  sun: "☉", moon: "☽", mercury: "☿", venus: "♀", mars: "♂",
-  jupiter: "♃", saturn: "♄", uranus: "♅", neptune: "♆", pluto: "♇",
-  chiron: "⚷", northnode: "☊", southnode: "☋", lilith: "⚸",
-  ascendant: "AC", midheaven: "MC",
-};
-
 export default function DailyTransits({ items }: Props) {
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
@@ -47,8 +40,6 @@ export default function DailyTransits({ items }: Props) {
           {astroItems.map((item, i) => {
             const accentColor = item.aspectKey ? (ASPECT_COLOR[item.aspectKey] ?? "#64748b") : "#64748b";
             const symbol = item.aspectKey ? (ASPECT_SYMBOL[item.aspectKey] ?? "•") : "•";
-            const tGlyph = PLANET_GLYPH[item.transitPlanet] ?? item.transitPlanet;
-            const nGlyph = item.natalPoint ? (PLANET_GLYPH[item.natalPoint] ?? item.natalPoint) : "";
             return (
               <div key={item.id} style={{
                 background: "var(--card-bg)",

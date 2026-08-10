@@ -1,8 +1,8 @@
 import { Origin, Horoscope } from "circular-natal-horoscope-js";
 import type { BirthData } from "../../config/birthData";
-import { longitudeToGateLine, GATE_NAMES, type GateLine } from "./gateTable";
+import { longitudeToGateLine, GATE_NAMES } from "./gateTable";
 import {
-  CHANNELS, CENTERS, MOTOR_CENTERS, AUTHORITY_HIERARCHY,
+  CHANNELS, AUTHORITY_HIERARCHY,
   type CenterName, type HDType,
 } from "./centersChannels";
 
