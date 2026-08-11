@@ -9,27 +9,25 @@ export interface BirthData {
   locationName: string;
 }
 
-// Neutral starting point for the onboarding form — not a real chart, just
-// sane field values before the visitor enters their own birth details.
-export function blankBirthData(): BirthData {
-  const now = new Date();
-  return {
-    year: now.getFullYear(), month: 0, date: 1, hour: 12, minute: 0,
-    latitude: 0, longitude: 0, locationName: "",
-  };
-}
+export const DEFAULT_BIRTH_DATA: BirthData = {
+  year: 1962,
+  month: 2, // March (0-indexed)
+  date: 10,
+  hour: 4,
+  minute: 46,
+  latitude: 47.6062,
+  longitude: -122.3321,
+  locationName: "Seattle, WA",
+};
 
 const LS_KEY = "astro_birth_data";
 
-// Each visitor's birth data lives only in their own browser's local storage —
-// nothing is shared across visitors and nothing ships baked into the build,
-// which matters once this is deployed as a public site.
-export function loadBirthData(): BirthData | null {
+export function loadBirthData(): BirthData {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return { ...DEFAULT_BIRTH_DATA, ...JSON.parse(raw) };
   } catch {}
-  return null;
+  return DEFAULT_BIRTH_DATA;
 }
 
 export function saveBirthData(data: BirthData): void {

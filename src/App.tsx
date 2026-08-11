@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { blankBirthData, loadBirthData, saveBirthData, type BirthData } from "./config/birthData";
+import { loadBirthData, saveBirthData, type BirthData } from "./config/birthData";
 import { buildChart } from "./lib/natalChart";
 import { buildHumanDesignChart } from "./lib/humanDesign/chart";
 import { getTodaysTransits } from "./lib/transits";
@@ -8,7 +8,6 @@ import NatalWheel from "./components/NatalWheel";
 import BodyGraph from "./components/BodyGraph";
 import DailyTransits from "./components/DailyTransits";
 import Settings from "./components/Settings";
-import Onboarding from "./components/Onboarding";
 
 type Tab = "today" | "natal" | "hd";
 
@@ -18,16 +17,12 @@ const TRANSIT_BODIES: TransitBody[] = [
 ];
 
 export default function App() {
-  const [birthData, setBirthData] = useState<BirthData | null>(loadBirthData);
+  const [birthData, setBirthData] = useState<BirthData>(loadBirthData);
   const [tab, setTab] = useState<Tab>("today");
   const [showSettings, setShowSettings] = useState(false);
 
-  // Charts need a non-null BirthData to compute, but hooks can't be called
-  // conditionally — fall back to a blank placeholder when nothing is saved
-  // yet, and simply don't render the result until onboarding is complete.
-  const chartInput = birthData ?? blankBirthData();
-  const natalChart = useMemo(() => buildChart(chartInput), [chartInput]);
-  const hdChart = useMemo(() => buildHumanDesignChart(chartInput), [chartInput]);
+  const natalChart = useMemo(() => buildChart(birthData), [birthData]);
+  const hdChart = useMemo(() => buildHumanDesignChart(birthData), [birthData]);
   const transits = useMemo(() => getTodaysTransits(natalChart, hdChart), [natalChart, hdChart]);
 
   // Live gate-transit durations don't depend on the user's own chart — just "now" —
@@ -58,10 +53,6 @@ export default function App() {
     saveBirthData(data);
     setBirthData(data);
   };
-
-  if (!birthData) {
-    return <Onboarding onSave={handleSave} />;
-  }
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
