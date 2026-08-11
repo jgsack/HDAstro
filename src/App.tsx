@@ -23,15 +23,22 @@ export default function App() {
 
   const natalChart = useMemo(() => buildChart(birthData), [birthData]);
   const hdChart = useMemo(() => buildHumanDesignChart(birthData), [birthData]);
-  const transits = useMemo(() => getTodaysTransits(natalChart, hdChart), [natalChart, hdChart]);
 
-  // Live gate-transit durations don't depend on the user's own chart — just "now" —
-  // so they're computed independently and refreshed periodically.
+  // Everything that depends on "now" (as opposed to just the natal chart)
+  // rides this same tick, so it all goes stale and refreshes together while
+  // the tab stays open, instead of only some pieces updating. Planets don't
+  // move fast enough for this to need sub-minute polling — 15 minutes is
+  // plenty to keep orbs/gate lines accurate to the displayed precision.
   const [transitTick, setTransitTick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setTransitTick(t => t + 1), 60_000);
+    const id = setInterval(() => setTransitTick(t => t + 1), 15 * 60_000);
     return () => clearInterval(id);
   }, []);
+
+  const transits = useMemo(
+    () => getTodaysTransits(natalChart, hdChart),
+    [natalChart, hdChart, transitTick],
+  );
   const transitDurations = useMemo(
     () => TRANSIT_BODIES.map(b => computeTransitDuration(b)),
     [transitTick],
