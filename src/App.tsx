@@ -111,7 +111,7 @@ export default function App() {
       </nav>
 
       <main style={{ flex: 1, padding: "28px 20px" }}>
-        {tab === "today" && <DailyTransits items={transits} natalChart={natalChart} hdChart={hdChart} />}
+        {tab === "today" && <DailyTransits items={transits} />}
 
         {tab === "natal" && (
           <div>
