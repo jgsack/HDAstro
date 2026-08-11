@@ -1,9 +1,15 @@
+import { useEffect, useState } from "react";
 import type { TransitItem } from "../lib/transits";
 import { buildDailyReading } from "../lib/dailyReading";
 import DailyReadingCard from "./DailyReading";
+import { fetchAiReading } from "../lib/aiReading";
+import type { NatalChart } from "../lib/natalChart";
+import type { HDChart } from "../lib/humanDesign/chart";
 
 interface Props {
   items: TransitItem[];
+  natalChart: NatalChart;
+  hdChart: HDChart;
 }
 
 const ASPECT_COLOR: Record<string, string> = {
@@ -18,7 +24,7 @@ const ASPECT_SYMBOL: Record<string, string> = {
   conjunction: "☌", opposition: "☍", trine: "△", square: "□", sextile: "⚹",
 };
 
-export default function DailyTransits({ items }: Props) {
+export default function DailyTransits({ items, natalChart, hdChart }: Props) {
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
   // Group: astrology first (sorted by priority), then HD gates
@@ -26,11 +32,25 @@ export default function DailyTransits({ items }: Props) {
   const hdItems = items.filter(i => i.type === "hd_gate").slice(0, 6);
   const reading = buildDailyReading(items);
 
+  // Real AI synthesis is the preferred reading — cached once per day via
+  // fetchAiReading — but it depends on a serverless endpoint that only
+  // exists once deployed (and only if an API key is configured there), so
+  // any failure (local dev, missing key, network) just keeps the offline
+  // template-based `reading` above on screen instead.
+  const [aiText, setAiText] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchAiReading(natalChart, hdChart, items)
+      .then(text => { if (!cancelled) setAiText(text); })
+      .catch(() => { /* offline template stays as the fallback */ });
+    return () => { cancelled = true; };
+  }, [natalChart, hdChart, items]);
+
   return (
     <div style={{ maxWidth: 680, margin: "0 auto" }}>
       <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>{today}</p>
 
-      <DailyReadingCard reading={reading} />
+      {aiText ? <AiReadingCard text={aiText} /> : <DailyReadingCard reading={reading} />}
 
       <section>
         <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-heading)", marginBottom: 12, letterSpacing: "0.05em", textTransform: "uppercase" }}>
@@ -102,6 +122,28 @@ export default function DailyTransits({ items }: Props) {
           )}
         </div>
       </section>
+    </div>
+  );
+}
+
+function AiReadingCard({ text }: { text: string }) {
+  const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+  return (
+    <div style={{
+      background: "var(--card-bg)", border: "1px solid var(--card-border)",
+      borderRadius: 12, padding: "20px 22px", marginBottom: 28,
+    }}>
+      <h2 style={{
+        fontSize: 12, fontWeight: 600, color: "var(--text-muted)",
+        letterSpacing: "0.05em", textTransform: "uppercase", margin: "0 0 12px",
+      }}>
+        Today's Reading
+      </h2>
+      {paragraphs.map((p, i) => (
+        <p key={i} style={{ fontSize: 14, color: "var(--text-main)", lineHeight: 1.7, margin: "0 0 12px" }}>
+          {p}
+        </p>
+      ))}
     </div>
   );
 }
