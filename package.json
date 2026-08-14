@@ -3,10 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "test": "vite build --ssr scripts/verify-calculations.ts --outDir node_modules/.tmp/calculation-tests && node node_modules/.tmp/calculation-tests/verify-calculations.js",
     "preview": "vite preview"
   },
   "dependencies": {

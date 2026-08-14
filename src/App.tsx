@@ -29,32 +29,32 @@ export default function App() {
   // the tab stays open, instead of only some pieces updating. Planets don't
   // move fast enough for this to need sub-minute polling — 15 minutes is
   // plenty to keep orbs/gate lines accurate to the displayed precision.
-  const [transitTick, setTransitTick] = useState(0);
+  const [transitTime, setTransitTime] = useState(() => new Date());
   useEffect(() => {
-    const id = setInterval(() => setTransitTick(t => t + 1), 15 * 60_000);
+    const id = setInterval(() => setTransitTime(new Date()), 15 * 60_000);
     return () => clearInterval(id);
   }, []);
 
   const transits = useMemo(
-    () => getTodaysTransits(natalChart, hdChart),
-    [natalChart, hdChart, transitTick],
+    () => getTodaysTransits(natalChart, hdChart, transitTime),
+    [natalChart, hdChart, transitTime],
   );
   const transitDurations = useMemo(
-    () => TRANSIT_BODIES.map(b => computeTransitDuration(b)),
-    [transitTick],
+    () => TRANSIT_BODIES.map(b => computeTransitDuration(b, transitTime)),
+    [transitTime],
   );
 
   // Today's sky, expressed as a "chart" the same way the natal one is (planet
   // ecliptic longitudes are geocentric, so location doesn't matter here — only
   // the current date/time). Reused for the transit ring on the natal wheel.
   const transitSky = useMemo(() => {
-    const now = new Date();
+    const now = transitTime;
     return buildChart({
       year: now.getFullYear(), month: now.getMonth(), date: now.getDate(),
       hour: now.getHours(), minute: now.getMinutes(),
       latitude: 0, longitude: 0, locationName: "",
     });
-  }, [transitTick]);
+  }, [transitTime]);
 
   const handleSave = (data: BirthData) => {
     saveBirthData(data);

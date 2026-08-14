@@ -1,32 +1,140 @@
-# React + TypeScript + Vite
+# Chart & Design
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A private-first, client-side React application that combines a tropical natal
+chart, real-time astrological transits, and a Human Design bodygraph. It ranks
+current transits against the saved natal chart and produces a concise daily
+reading.
 
-Currently, two official plugins are available:
+The public source repository is
+[jgsack/HDAstro](https://github.com/jgsack/HDAstro). The current production site
+is built from GitHub by Vercel; GitHub Pages is not used.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Tropical natal chart with whole-sign houses, angles, planets, points, aspects,
+  retrograde markers, and a live transit ring.
+- Human Design Personality and Design activations, gates, lines, channels,
+  centers, Type, Strategy, Profile, and Authority.
+- Live Human Design conditioning overlay with gate/line duration estimates and
+  channel-completion indicators.
+- Current natal aspects with orb, applying/separating phase, and actual
+  exact-time detection for the local calendar day.
+- Deterministic daily interpretation assembled from the ranked astrological and
+  Human Design transits.
+- Birth settings stored only in the browser's `localStorage`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Requirements
 
-## Expanding the Oxlint configuration
+- Node.js 22.12 or newer (Node 24 LTS is recommended).
+- npm, included with Node.js.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Fresh-clone setup
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```powershell
+git clone https://github.com/jgsack/HDAstro.git
+cd HDAstro
+npm ci
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Vite prints the local URL, normally `http://localhost:5173`.
+
+No `.env` file, API key, database, backend service, or generated asset is needed
+to run the application. All required source assets and dependency versions are
+committed.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Vite development server. |
+| `npm test` | Bundle and run the calculation regression checks. |
+| `npm run lint` | Run Oxlint. |
+| `npm run build` | Type-check and create the production bundle in `dist/`. |
+| `npm run preview` | Serve the completed production bundle locally. |
+
+Before publishing a change, run:
+
+```powershell
+npm test
+npm run lint
+npm run build
+```
+
+## Project map
+
+```text
+public/                         Static icons and favicon
+scripts/verify-calculations.ts Calculation regression suite
+src/App.tsx                    Application shell, tabs, and refresh clock
+src/components/                Natal wheel, bodygraph, readings, and settings
+src/config/birthData.ts        Default birth data and localStorage persistence
+src/lib/natalChart.ts          Natal chart adapter
+src/lib/transits.ts            Live aspects, exact times, ranking, and HD gates
+src/lib/transitDuration.ts     Ephemeris and HD gate/line duration calculations
+src/lib/dailyReading.ts        Deterministic interpretation templates
+src/lib/humanDesign/           Gate mapping, channels, layout, and chart derivation
+```
+
+## Calculation conventions
+
+- Natal positions and houses use `circular-natal-horoscope-js`, a tropical
+  zodiac, and whole-sign houses. That library derives historical local time from
+  the supplied coordinates.
+- Live geocentric longitudes and transit durations use `astronomy-engine`.
+- Astrology transits include Sun through Pluto plus the mean North and South
+  Nodes. Chiron remains available in the natal chart but is not included in the
+  live ephemeris because `astronomy-engine` does not supply it.
+- Human Design transits use the standard 13 placements: Sun, Earth, Moon, both
+  Nodes, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto.
+- The Design moment is found at 88 degrees of solar arc before the Personality
+  Sun.
+- Gate 25 begins at 358.25 degrees ecliptic longitude; each gate spans 5.625
+  degrees and each line spans 0.9375 degrees.
+- The application refreshes all live views from one timestamp every 15 minutes.
+- “Exact today” means an exact longitude crossing was found within the browser's
+  local calendar day. It is not merely an orb threshold.
+
+The regression suite covers indirect motor-to-Throat connectivity, Type and
+Authority examples, the lunar-node 360/0-degree boundary, and the Human Design
+transit-body set. Add a regression case whenever calculation behavior changes.
+
+## Birth data and privacy
+
+This is currently a single-user application. The default birth date, time,
+coordinates, and location are committed in `src/config/birthData.ts`; settings
+changed in the app are stored under `astro_birth_data` in the current browser.
+
+Because the repository is public, changing the committed default to another
+person's data publishes that data. Do not commit secrets, private API keys, or
+other sensitive personal information.
+
+## Interpretation layer
+
+The current reading is deterministic and entirely local. It selects the
+highest-ranked active aspects and Human Design gates and formats them using
+templates in `src/lib/dailyReading.ts`. It is not presently generated by an AI
+service.
+
+If AI synthesis is reintroduced, keep provider credentials on a server or
+serverless function. Never place a secret API key in Vite client code.
+
+## Deployment
+
+The Vercel project is connected to this GitHub repository. Its expected settings
+are:
+
+- Framework: Vite
+- Install command: `npm ci`
+- Build command: `npm run build`
+- Output directory: `dist`
+
+`dist/` and `node_modules/` are intentionally ignored because both are recreated
+from committed files. A future OpenAI Sites deployment can be added separately;
+do not add hosting metadata until that migration is intentional.
+
+## Repository handoff checklist
+
+A fresh machine needs only the Git repository and a supported Node.js version.
+When handing the project to another Codex session, point it to `AGENTS.md` and
+this README, then have it run the three verification commands before editing.
