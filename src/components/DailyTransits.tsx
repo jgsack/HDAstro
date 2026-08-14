@@ -1,9 +1,9 @@
 import type { TransitItem } from "../lib/transits";
-import { buildDailyReading } from "../lib/dailyReading";
-import DailyReadingCard from "./DailyReading";
+import DailySynthesis from "./DailySynthesis";
 
 interface Props {
   items: TransitItem[];
+  chartFingerprint: string;
 }
 
 const ASPECT_COLOR: Record<string, string> = {
@@ -18,19 +18,19 @@ const ASPECT_SYMBOL: Record<string, string> = {
   conjunction: "☌", opposition: "☍", trine: "△", square: "□", sextile: "⚹",
 };
 
-export default function DailyTransits({ items }: Props) {
+export default function DailyTransits({ items, chartFingerprint }: Props) {
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
   // Group: astrology first (sorted by priority), then HD gates
   const astroItems = items.filter(i => i.type === "aspect").slice(0, 18);
   const hdItems = items.filter(i => i.type === "hd_gate").slice(0, 6);
-  const reading = buildDailyReading(items);
-
   return (
     <div style={{ maxWidth: 680, margin: "0 auto" }}>
       <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>{today}</p>
 
-      <DailyReadingCard reading={reading} />
+      <DailySynthesis
+        chartFingerprint={chartFingerprint}
+      />
 
       <section>
         <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-heading)", marginBottom: 12, letterSpacing: "0.05em", textTransform: "uppercase" }}>

@@ -11,6 +11,7 @@
     "build": "vinext build",
     "lint": "oxlint",
     "test": "vite build --config vite.test.config.ts --ssr scripts/verify-calculations.ts --outDir node_modules/.tmp/calculation-tests && node node_modules/.tmp/calculation-tests/verify-calculations.js",
+    "daily:context": "vite build --config vite.daily.config.ts --ssr scripts/export-daily-context.ts --outDir node_modules/.tmp/daily-context && node node_modules/.tmp/daily-context/export-daily-context.js",
     "preview": "vinext start"
   },
   "dependencies": {

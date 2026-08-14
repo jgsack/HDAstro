@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import dailySynthesis from "../data/daily-synthesis.json";
+import { DEFAULT_BIRTH_DATA } from "../src/config/birthData";
+import { birthDataFingerprint } from "../src/lib/dailySynthesis";
 import { deriveChart, type HDActivation, type HDChart } from "../src/lib/humanDesign/chart";
 import { computeTransitDuration, eclipticLongitude } from "../src/lib/transitDuration";
 import { getTodaysTransits } from "../src/lib/transits";
@@ -91,5 +94,11 @@ const expectedHDBodies = [
 ];
 assert.deepEqual([...hdBodies].sort(), [...expectedHDBodies].sort());
 assert.ok(!hdBodies.has("chiron"));
+
+assert.equal(dailySynthesis.chartFingerprint, birthDataFingerprint(DEFAULT_BIRTH_DATA));
+assert.match(dailySynthesis.date, /^\d{4}-\d{2}-\d{2}$/);
+assert.ok(dailySynthesis.headline.length > 10);
+assert.equal(dailySynthesis.summary.length, 2);
+assert.ok(dailySynthesis.focus.length > 20);
 
 console.log("Calculation verification passed.");

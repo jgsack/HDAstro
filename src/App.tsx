@@ -4,6 +4,7 @@ import { buildChart } from "./lib/natalChart";
 import { buildHumanDesignChart } from "./lib/humanDesign/chart";
 import { getTodaysTransits } from "./lib/transits";
 import { computeTransitDuration, type TransitBody } from "./lib/transitDuration";
+import { birthDataFingerprint } from "./lib/dailySynthesis";
 import NatalWheel from "./components/NatalWheel";
 import BodyGraph from "./components/BodyGraph";
 import DailyTransits from "./components/DailyTransits";
@@ -111,7 +112,12 @@ export default function App() {
       </nav>
 
       <main style={{ flex: 1, padding: "28px 20px" }}>
-        {tab === "today" && <DailyTransits items={transits} />}
+        {tab === "today" && (
+          <DailyTransits
+            items={transits}
+            chartFingerprint={birthDataFingerprint(birthData)}
+          />
+        )}
 
         {tab === "natal" && (
           <div>

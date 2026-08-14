@@ -38,17 +38,18 @@ Add a case to `scripts/verify-calculations.ts` for every calculation bug fixed.
 
 ## Data and security
 
-- The app is client-only and stores settings in localStorage.
+- Birth settings remain client-only and are stored in localStorage.
 - Never commit API keys, tokens, passwords, connection strings, or `.env` files.
 - The committed default birth data is publicly visible. Treat any replacement
   personal data as a deliberate privacy decision.
-- If AI interpretation is added, route secrets through a backend/serverless
-  boundary; never expose them through `import.meta.env` in the browser bundle.
+- AI interpretation is produced by the cloud-scheduled task and committed as
+  `data/daily-synthesis.json`. The public app makes no model calls and contains
+  no AI credential.
 
 ## Deployment
 
-- GitHub is the durable source repository. OpenAI Sites and the existing Vercel
-  project can both build this app.
+- GitHub is the durable source repository and OpenAI Sites is the production
+  host.
 - `.openai/hosting.json` contains the opaque Sites project identity and must be
   preserved. Do not invent or replace that ID.
 - Sites uses the supported vinext and Cloudflare runtime. Its worker entry is
@@ -57,3 +58,6 @@ Add a case to `scripts/verify-calculations.ts` for every calculation bug fixed.
 - GitHub Pages is not configured.
 - Publishing a new hosted version remains an explicit deployment task, not an
   implicit side effect of ordinary feature work.
+- The daily automation is an explicit exception: after updating only the
+  current synthesis and validating the site, it commits and republishes the
+  existing public Sites project.
