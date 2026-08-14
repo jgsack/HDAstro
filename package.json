@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.13.0"
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && vite build --config vite.worker.config.ts",
     "lint": "oxlint",
     "test": "vite build --ssr scripts/verify-calculations.ts --outDir node_modules/.tmp/calculation-tests && node node_modules/.tmp/calculation-tests/verify-calculations.js",
     "preview": "vite preview"
@@ -20,6 +20,7 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@openai/sites-vite-plugin": "^0.1.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

@@ -47,8 +47,13 @@ Add a case to `scripts/verify-calculations.ts` for every calculation bug fixed.
 
 ## Deployment
 
-- GitHub is the source repository; Vercel currently builds the production site.
+- GitHub is the durable source repository. OpenAI Sites and the existing Vercel
+  project can both build this app.
+- `.openai/hosting.json` contains the opaque Sites project identity and must be
+  preserved. Do not invent or replace that ID.
+- The Sites worker entry is `worker/index.ts`; its production artifact must be
+  `dist/server/index.js`.
 - Expected production command: `npm run build`; output: `dist`.
 - GitHub Pages is not configured.
-- OpenAI Sites migration is a future, explicit deployment task—not an implicit
-  side effect of ordinary feature work.
+- Publishing a new hosted version remains an explicit deployment task, not an
+  implicit side effect of ordinary feature work.

@@ -6,8 +6,9 @@ current transits against the saved natal chart and produces a concise daily
 reading.
 
 The public source repository is
-[jgsack/HDAstro](https://github.com/jgsack/HDAstro). The current production site
-is built from GitHub by Vercel; GitHub Pages is not used.
+[jgsack/HDAstro](https://github.com/jgsack/HDAstro). The app is configured for
+OpenAI Sites and can continue to use the existing GitHub-connected Vercel
+deployment; GitHub Pages is not used.
 
 ## Features
 
@@ -25,7 +26,7 @@ is built from GitHub by Vercel; GitHub Pages is not used.
 
 ## Requirements
 
-- Node.js 22.12 or newer (Node 24 LTS is recommended).
+- Node.js 22.13 or newer (Node 24 LTS is recommended).
 - npm, included with Node.js.
 
 ## Fresh-clone setup
@@ -121,6 +122,18 @@ serverless function. Never place a secret API key in Vite client code.
 
 ## Deployment
 
+### OpenAI Sites
+
+The Sites project identity is stored in `.openai/hosting.json`. The main Vite
+build packages that metadata, and `vite.worker.config.ts` creates the lightweight
+Cloudflare-compatible entry point in `dist/server/index.js`. The worker serves
+the static Vite application and falls back to `index.html` for browser routes.
+
+Publishing a new Sites version requires a successful `npm run build`; the Sites
+publishing workflow packages the resulting `dist/` directory.
+
+### Vercel
+
 The Vercel project is connected to this GitHub repository. Its expected settings
 are:
 
@@ -130,8 +143,8 @@ are:
 - Output directory: `dist`
 
 `dist/` and `node_modules/` are intentionally ignored because both are recreated
-from committed files. A future OpenAI Sites deployment can be added separately;
-do not add hosting metadata until that migration is intentional.
+from committed files. Sites and Vercel can coexist while the preferred permanent
+host is evaluated.
 
 ## Repository handoff checklist
 
