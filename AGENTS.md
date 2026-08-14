@@ -51,8 +51,8 @@ Add a case to `scripts/verify-calculations.ts` for every calculation bug fixed.
   project can both build this app.
 - `.openai/hosting.json` contains the opaque Sites project identity and must be
   preserved. Do not invent or replace that ID.
-- The Sites worker entry is `worker/index.ts`; its production artifact must be
-  `dist/server/index.js`.
+- Sites uses the supported vinext and Cloudflare runtime. Its worker entry is
+  `worker/index.ts`, and the production artifact must be `dist/server/index.js`.
 - Expected production command: `npm run build`; output: `dist`.
 - GitHub Pages is not configured.
 - Publishing a new hosted version remains an explicit deployment task, not an

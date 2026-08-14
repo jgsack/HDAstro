@@ -38,7 +38,7 @@ npm ci
 npm run dev
 ```
 
-Vite prints the local URL, normally `http://localhost:5173`.
+The development server prints the local URL, normally `http://localhost:3000`.
 
 No `.env` file, API key, database, backend service, or generated asset is needed
 to run the application. All required source assets and dependency versions are
@@ -48,7 +48,7 @@ committed.
 
 | Command | Purpose |
 | --- | --- |
-| `npm run dev` | Start the Vite development server. |
+| `npm run dev` | Start the local development server. |
 | `npm test` | Bundle and run the calculation regression checks. |
 | `npm run lint` | Run Oxlint. |
 | `npm run build` | Type-check and create the production bundle in `dist/`. |
@@ -124,10 +124,9 @@ serverless function. Never place a secret API key in Vite client code.
 
 ### OpenAI Sites
 
-The Sites project identity is stored in `.openai/hosting.json`. The main Vite
-build packages that metadata, and `vite.worker.config.ts` creates the lightweight
-Cloudflare-compatible entry point in `dist/server/index.js`. The worker serves
-the static Vite application and falls back to `index.html` for browser routes.
+The Sites project identity is stored in `.openai/hosting.json`. The supported
+vinext, Cloudflare, and Sites build produces the application and its worker entry
+at `dist/server/index.js`.
 
 Publishing a new Sites version requires a successful `npm run build`; the Sites
 publishing workflow packages the resulting `dist/` directory.
@@ -137,7 +136,7 @@ publishing workflow packages the resulting `dist/` directory.
 The Vercel project is connected to this GitHub repository. Its expected settings
 are:
 
-- Framework: Vite
+- Framework: Other
 - Install command: `npm ci`
 - Build command: `npm run build`
 - Output directory: `dist`

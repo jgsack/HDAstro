@@ -7,26 +7,31 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build && vite build --config vite.worker.config.ts",
+    "dev": "vinext dev",
+    "build": "vinext build",
     "lint": "oxlint",
-    "test": "vite build --ssr scripts/verify-calculations.ts --outDir node_modules/.tmp/calculation-tests && node node_modules/.tmp/calculation-tests/verify-calculations.js",
-    "preview": "vite preview"
+    "test": "vite build --config vite.test.config.ts --ssr scripts/verify-calculations.ts --outDir node_modules/.tmp/calculation-tests && node node_modules/.tmp/calculation-tests/verify-calculations.js",
+    "preview": "vinext start"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",
     "circular-natal-horoscope-js": "^1.1.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-server-dom-webpack": "^19.2.6",
+    "vinext": "^1.0.0-beta.2"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.37.1",
     "@openai/sites-vite-plugin": "^0.1.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
+    "@vitejs/plugin-rsc": "^0.5.26",
     "oxlint": "^1.75.0",
     "typescript": "~6.0.2",
-    "vite": "^8.2.0"
+    "vite": "^8.2.0",
+    "wrangler": "^4.92.0"
   }
 }
