@@ -1,9 +1,11 @@
 import type { TransitItem } from "../lib/transits";
+import { formatDuration, type TransitDuration } from "../lib/transitDuration";
 import DailySynthesis from "./DailySynthesis";
 
 interface Props {
   items: TransitItem[];
   chartFingerprint: string;
+  transitDurations: TransitDuration[];
 }
 
 const ASPECT_COLOR: Record<string, string> = {
@@ -18,8 +20,11 @@ const ASPECT_SYMBOL: Record<string, string> = {
   conjunction: "☌", opposition: "☍", trine: "△", square: "□", sextile: "⚹",
 };
 
-export default function DailyTransits({ items, chartFingerprint }: Props) {
+export default function DailyTransits({ items, chartFingerprint, transitDurations }: Props) {
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const durationByBody = new Map<string, TransitDuration>(
+    transitDurations.map(duration => [duration.body, duration]),
+  );
 
   // Group: astrology first (sorted by priority), then HD gates
   const astroItems = items.filter(i => i.type === "aspect").slice(0, 18);
@@ -83,20 +88,40 @@ export default function DailyTransits({ items, chartFingerprint }: Props) {
           Human Design — Gate Transits
         </h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {hdItems.map(item => (
-            <div key={item.id} style={{
-              background: "var(--card-bg)",
-              border: "1px solid var(--card-border)",
-              borderLeft: "3px solid var(--hd-accent, #8b5cf6)",
-              borderRadius: 8,
-              padding: "10px 14px",
-            }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-main)", marginBottom: 3 }}>
-                {item.headline}
+          {hdItems.map(item => {
+            const duration = durationByBody.get(item.transitPlanet);
+            const remaining = duration?.remainingMs;
+            return (
+              <div key={item.id} style={{
+                background: "var(--card-bg)",
+                border: "1px solid var(--card-border)",
+                borderLeft: "3px solid var(--hd-accent, #8b5cf6)",
+                borderRadius: 8,
+                padding: "10px 14px",
+                display: "flex",
+                gap: 14,
+                alignItems: "flex-start",
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-main)", marginBottom: 3 }}>
+                    {item.headline}
+                  </div>
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>{item.detail}</p>
+                </div>
+                <span style={{
+                  color: "var(--hd-accent, #8b5cf6)",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  paddingTop: 1,
+                }}>
+                  {remaining !== null && remaining !== undefined
+                    ? `${formatDuration(remaining)} left`
+                    : "Time unknown"}
+                </span>
               </div>
-              <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>{item.detail}</p>
-            </div>
-          ))}
+            );
+          })}
           {hdItems.length === 0 && (
             <p style={{ color: "var(--text-muted)", fontSize: 13 }}>No notable HD gate activations today.</p>
           )}
