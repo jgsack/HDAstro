@@ -116,6 +116,7 @@ export default function App() {
           <DailyTransits
             items={transits}
             chartFingerprint={birthDataFingerprint(birthData)}
+            transitDurations={transitDurations}
           />
         )}
 
