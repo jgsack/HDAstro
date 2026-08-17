@@ -1,0 +1,8 @@
+{
+  "pid": 15,
+  "port": 4173,
+  "hostname": "localhost",
+  "appUrl": "http://localhost:4173",
+  "startedAt": 1786985836385,
+  "cwd": "/site"
+}
