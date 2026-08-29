@@ -117,6 +117,8 @@ export default function App() {
             items={transits}
             chartFingerprint={birthDataFingerprint(birthData)}
             transitDurations={transitDurations}
+            strategy={hdChart.strategy}
+            authority={hdChart.authority}
           />
         )}
 

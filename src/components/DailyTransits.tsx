@@ -6,6 +6,8 @@ interface Props {
   items: TransitItem[];
   chartFingerprint: string;
   transitDurations: TransitDuration[];
+  strategy: string;
+  authority: string;
 }
 
 const ASPECT_COLOR: Record<string, string> = {
@@ -20,7 +22,9 @@ const ASPECT_SYMBOL: Record<string, string> = {
   conjunction: "☌", opposition: "☍", trine: "△", square: "□", sextile: "⚹",
 };
 
-export default function DailyTransits({ items, chartFingerprint, transitDurations }: Props) {
+export default function DailyTransits({
+  items, chartFingerprint, transitDurations, strategy, authority,
+}: Props) {
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   const durationByBody = new Map<string, TransitDuration>(
     transitDurations.map(duration => [duration.body, duration]),
@@ -35,6 +39,9 @@ export default function DailyTransits({ items, chartFingerprint, transitDuration
 
       <DailySynthesis
         chartFingerprint={chartFingerprint}
+        items={items}
+        strategy={strategy}
+        authority={authority}
       />
 
       <section>

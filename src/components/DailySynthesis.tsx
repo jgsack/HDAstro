@@ -1,7 +1,12 @@
 import dailySynthesis from "../../data/daily-synthesis.json";
+import { buildLiveSynthesis } from "../lib/dailySynthesis";
+import type { TransitItem } from "../lib/transits";
 
 interface Props {
   chartFingerprint: string;
+  items: TransitItem[];
+  strategy: string;
+  authority: string;
 }
 
 function localDateKey(date: Date): string {
@@ -11,10 +16,13 @@ function localDateKey(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-export default function DailySynthesis({ chartFingerprint }: Props) {
+export default function DailySynthesis({ chartFingerprint, items, strategy, authority }: Props) {
   const isToday = dailySynthesis.date === localDateKey(new Date());
   const matchesChart = dailySynthesis.chartFingerprint === chartFingerprint;
   const isReady = isToday && matchesChart;
+  const synthesis = isReady
+    ? dailySynthesis
+    : buildLiveSynthesis(items, strategy, authority);
 
   return (
     <section style={{
@@ -38,19 +46,14 @@ export default function DailySynthesis({ chartFingerprint }: Props) {
         Integrated Daily Synthesis
       </p>
 
-      {!isReady && (
-        <div role="status" style={{ position: "relative" }}>
-          <h2 style={{ fontSize: 18, margin: "0 0 9px" }}>Today’s synthesis is being prepared</h2>
-          <p style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6, margin: 0 }}>
-            The detailed transit rankings below are current. The combined daily reading will appear after the morning refresh.
-          </p>
-        </div>
-      )}
-
-      {isReady && (
-        <div style={{ position: "relative" }}>
-          <h2 style={{ fontSize: 20, lineHeight: 1.25, margin: "0 0 10px" }}>{dailySynthesis.headline}</h2>
-          {dailySynthesis.summary.map((paragraph, index) => (
+      <div style={{ position: "relative" }}>
+          {!isReady && (
+            <p style={{ color: "var(--text-muted)", fontSize: 10, margin: "0 0 8px" }}>
+              Live calculated reading
+            </p>
+          )}
+          <h2 style={{ fontSize: 20, lineHeight: 1.25, margin: "0 0 10px" }}>{synthesis.headline}</h2>
+          {synthesis.summary.map((paragraph, index) => (
             <p key={index} style={{
               color: "var(--text-main)", fontSize: 13, lineHeight: 1.7,
               margin: index === 0 ? "0 0 10px" : "10px 0",
@@ -64,11 +67,10 @@ export default function DailySynthesis({ chartFingerprint }: Props) {
           }}>
             <span style={{ color: "var(--hd-accent)", fontSize: 12 }}>✦</span>
             <p style={{ margin: 0, color: "var(--text-heading)", fontSize: 12, lineHeight: 1.55 }}>
-              <strong>Today’s focus:</strong> {dailySynthesis.focus}
+              <strong>Today’s focus:</strong> {synthesis.focus}
             </p>
           </div>
         </div>
-      )}
     </section>
   );
 }
