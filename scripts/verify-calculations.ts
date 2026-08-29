@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import dailySynthesis from "../data/daily-synthesis.json";
 import { DEFAULT_BIRTH_DATA } from "../src/config/birthData";
-import { birthDataFingerprint } from "../src/lib/dailySynthesis";
+import { birthDataFingerprint, buildLiveSynthesis } from "../src/lib/dailySynthesis";
 import { deriveChart, type HDActivation, type HDChart } from "../src/lib/humanDesign/chart";
 import { computeTransitDuration, eclipticLongitude } from "../src/lib/transitDuration";
 import { getTodaysTransits } from "../src/lib/transits";
@@ -100,5 +100,34 @@ assert.match(dailySynthesis.date, /^\d{4}-\d{2}-\d{2}$/);
 assert.ok(dailySynthesis.headline.length > 10);
 assert.equal(dailySynthesis.summary.length, 2);
 assert.ok(dailySynthesis.focus.length > 20);
+
+const liveSynthesis = buildLiveSynthesis([
+  {
+    id: "test-aspect",
+    type: "aspect",
+    priority: 10,
+    headline: "Transiting Moon trines your natal Sun",
+    detail: "Moon at 1.0° Aries. Orb: 0.10° · applying — exact 2:00 PM",
+    transitPlanet: "moon",
+    natalPoint: "sun",
+    aspectKey: "trine",
+    isExactToday: true,
+    phase: "applying",
+  },
+  {
+    id: "test-gate",
+    type: "hd_gate",
+    priority: 9,
+    headline: "Saturn activates Gate 21 — Biting Through",
+    detail: "Saturn activating Gate 21 line 5. Temporarily completing channel: Money Line",
+    transitPlanet: "saturn",
+    gate: 21,
+  },
+], "Wait for the Invitation", "Emotional");
+assert.equal(liveSynthesis.headline, "Let today’s exact transit set the pace");
+assert.equal(liveSynthesis.summary.length, 2);
+assert.match(liveSynthesis.summary[0], /exact 2:00 PM/);
+assert.match(liveSynthesis.summary[1], /Money Line/);
+assert.match(liveSynthesis.focus, /Emotional clarity/);
 
 console.log("Calculation verification passed.");
