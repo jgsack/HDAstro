@@ -124,10 +124,12 @@ const liveSynthesis = buildLiveSynthesis([
     gate: 21,
   },
 ], "Wait for the Invitation", "Emotional");
-assert.equal(liveSynthesis.headline, "Let today’s exact transit set the pace");
+assert.equal(liveSynthesis.headline, "Let today’s turning point become information, not a command");
 assert.equal(liveSynthesis.summary.length, 2);
-assert.match(liveSynthesis.summary[0], /exact 2:00 PM/);
+assert.match(liveSynthesis.summary[0], /exact at 2:00 PM/);
+assert.match(liveSynthesis.summary[0], /Feeling, instinct, and immediate needs/);
 assert.match(liveSynthesis.summary[1], /Money Line/);
+assert.match(liveSynthesis.summary[1], /stewardship, control, and clean agreements/);
 assert.match(liveSynthesis.focus, /Emotional clarity/);
 
 console.log("Calculation verification passed.");
