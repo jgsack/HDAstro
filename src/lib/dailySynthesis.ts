@@ -1,10 +1,20 @@
 import type { BirthData } from "../config/birthData";
 import type { TransitItem } from "./transits";
+import { getPlanetLabel } from "./transits";
+import { aspectReading, gatePractice, authorityPractice } from "./readingRules";
+
+export interface ReadingSection {
+  title: string;
+  evidence: string;
+  meaning: string;
+  practice: string;
+}
 
 export interface DailySynthesisContent {
   headline: string;
   summary: string[];
   focus: string;
+  sections?: ReadingSection[];
 }
 
 export function birthDataFingerprint(data: BirthData): string {
@@ -19,47 +29,6 @@ export function birthDataFingerprint(data: BirthData): string {
   }
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
-
-const TRANSIT_THEMES: Record<string, string> = {
-  sun: "visibility, vitality, and conscious purpose",
-  moon: "feeling, instinct, and immediate needs",
-  mercury: "language, perception, and decisions",
-  venus: "values, relationship, and receptivity",
-  mars: "action, desire, and the use of force",
-  jupiter: "growth, confidence, and proportion",
-  saturn: "responsibility, limits, and durable structure",
-  uranus: "freedom, disruption, and a more authentic pattern",
-  neptune: "imagination, sensitivity, and uncertain boundaries",
-  pluto: "power, truth, and deep transformation",
-  northnode: "the direction that asks for development",
-  southnode: "the familiar pattern ready for perspective",
-};
-
-const NATAL_THEMES: Record<string, string> = {
-  sun: "identity and life direction",
-  moon: "emotional security and embodied needs",
-  mercury: "thinking and communication",
-  venus: "values and relationships",
-  mars: "initiative and self-assertion",
-  jupiter: "faith, meaning, and growth",
-  saturn: "boundaries and responsibility",
-  uranus: "independence and the need for change",
-  neptune: "imagination, ideals, and discernment",
-  pluto: "power, vulnerability, and regeneration",
-  chiron: "the tender place where experience becomes wisdom",
-  northnode: "growth and future direction",
-  southnode: "habit and accumulated experience",
-  ascendant: "identity, presence, and how life meets you",
-  midheaven: "public direction, vocation, and visible contribution",
-};
-
-const ASPECT_DYNAMICS: Record<string, string> = {
-  conjunction: "concentrates both themes into one immediate experience",
-  opposition: "asks you to hold two competing truths without collapsing into either one",
-  square: "creates productive friction that requires a conscious adjustment",
-  trine: "offers a supportive current that becomes useful when you participate in it",
-  sextile: "opens an opportunity that still needs a deliberate response",
-};
 
 const GATE_THEMES: Record<number, string> = {
   1: "creative self-expression", 2: "receptive direction", 3: "bringing order to a new beginning",
@@ -86,32 +55,28 @@ const GATE_THEMES: Record<number, string> = {
   64: "confusion before meaning takes shape",
 };
 
-function interpretAspect(item: TransitItem): string {
-  const transit = TRANSIT_THEMES[item.transitPlanet] ?? "a changing life emphasis";
-  const natal = NATAL_THEMES[item.natalPoint ?? ""] ?? "a personal natal theme";
-  const dynamic = ASPECT_DYNAMICS[item.aspectKey ?? ""] ?? "brings the two themes into conversation";
-  const exactTime = item.detail.match(/exact (.+)$/)?.[1];
-  const timing = item.isExactToday
-    ? `This is a present-tense turning point${exactTime ? `, exact at ${exactTime}` : ""}; notice what becomes undeniable without treating urgency as certainty.`
-    : item.phase === "applying"
-      ? "The influence is still building, so allow the meaning to develop before deciding what it requires."
-      : item.phase === "separating"
-        ? "The peak has passed; integration matters more now than generating another reaction."
-        : "This slow influence rewards patience and sustained attention rather than a quick conclusion.";
-  return `${transit[0].toUpperCase()}${transit.slice(1)} now meets ${natal}; this ${dynamic}. ${timing}`;
+function interpretAspect(item: TransitItem): ReadingSection {
+  const reading = aspectReading(item);
+  const slow = ["jupiter", "saturn", "uranus", "neptune", "pluto", "northnode", "southnode"].includes(item.transitPlanet);
+  const scale = item.transitPlanet === "moon" ? "Brief lunar contact" : slow ? "Longer-running theme" : "Near-term emphasis";
+  return { ...reading, title: `${scale}: ${reading.title}`, evidence: `${item.headline}. ${item.detail}` };
 }
 
-function interpretGate(item: TransitItem): string {
+function interpretGate(item: TransitItem): ReadingSection {
   const theme = item.gate ? GATE_THEMES[item.gate] : undefined;
   const channel = item.detail.match(/Temporarily completing channels?: ([^.]+)/)?.[1];
   const completion = channel
-    ? ` By temporarily completing ${channel}, it can make that theme feel unusually available or urgent; availability is not the same as a lasting commitment.`
+    ? ` The transit supplies the other end of your ${channel} channel. In Human Design terms, this is temporary access to a channel that is not fully defined in your birth chart; it does not change your natal Type or Authority.`
     : "";
   const natal = item.detail.includes("one of your natal gates")
     ? " Because this is already part of your natal design, the transit may feel familiar but louder."
     : "";
-  const planetTheme = TRANSIT_THEMES[item.transitPlanet] ?? "the current transit";
-  return `Gate ${item.gate} emphasizes ${theme ?? "working consciously with its central theme"}, colored by ${planetTheme}.${completion}${natal}`;
+  return {
+    title: `${getPlanetLabel(item.transitPlanet)} in Gate ${item.gate}: ${theme ?? "gate activation"}`,
+    evidence: item.detail,
+    meaning: `Within Human Design, this gate concerns ${theme ?? "the theme named in the activation"}.${completion}${natal}`,
+    practice: gatePractice(item.gate),
+  };
 }
 
 /**
@@ -122,28 +87,33 @@ function interpretGate(item: TransitItem): string {
 export function buildLiveSynthesis(
   items: TransitItem[], strategy: string, authority: string,
 ): DailySynthesisContent {
-  const astrology = items.filter(item => item.type === "aspect").slice(0, 2);
-  const humanDesign = items.filter(item => item.type === "hd_gate").slice(0, 2);
-  const lead = astrology[0];
-
-  const headline = lead?.isExactToday
-    ? "Let today’s turning point become information, not a command"
-    : lead?.phase === "applying"
-      ? "Stay with what is developing before you decide"
-      : "Integrate what the day has revealed before reaching again";
-
-  const astrologySummary = astrology.length > 0
-    ? astrology.map(interpretAspect).join(" ")
-    : "No major natal aspects are currently within the app’s displayed orbs.";
-
-  const humanDesignSummary = humanDesign.length > 0
-    ? `${humanDesign.map(interpretGate).join(" ")} ` +
-      `Use your ${authority} Authority and your strategy—${strategy}—to decide what deserves your energy.`
-    : `No notable gate activations are currently ranked. Use your ${authority} Authority and your strategy—${strategy}—as the day’s anchor.`;
-
+  // Keep the ranked lead, but do not count opposite ends of the same nodal
+  // axis as separate evidence. Include a faster contact when available so a
+  // slow transit does not become the entire daily reading for weeks.
+  const seen = new Set<string>();
+  const ranked = [...items].sort((a, b) => b.priority - a.priority);
+  const aspects = ranked.filter(item => {
+    if (item.type !== "aspect") return false;
+    const key = `${item.transitPlanet.replace("southnode", "northnode")}:${(item.natalPoint ?? "").replace("southnode", "northnode")}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const astrology = aspects.slice(0, 2);
+  const fast = aspects.find(item => ["sun", "moon", "mercury", "venus", "mars"].includes(item.transitPlanet));
+  if (fast && !astrology.includes(fast)) astrology.push(fast);
+  const gates = ranked.filter(item => item.type === "hd_gate");
+  const humanDesign = gates.slice(0, 1);
+  const sun = gates.find(item => item.transitPlanet === "sun");
+  if (sun && !humanDesign.includes(sun)) humanDesign.push(sun);
+  const sections = [...astrology.map(interpretAspect), ...humanDesign.map(interpretGate)];
   return {
-    headline,
-    summary: [astrologySummary, humanDesignSummary],
-    focus: `${strategy}; use the transits as weather, then let ${authority} clarity determine your response.`,
+    headline: astrology[0] ? aspectReading(astrology[0]).title : "Your current gate activations",
+    summary: [
+      astrology[0] ? `The strongest ranked contact is ${getPlanetLabel(astrology[0].transitPlanet)} ${astrology[0].aspectKey} your natal ${getPlanetLabel(astrology[0].natalPoint ?? "")}. Read the examples below against what is actually happening in your day.` : "No major natal aspects are currently within the displayed orbs.",
+      "Each interpretation below names its chart evidence and a practical way to explore it. An exact time marks the angular crossing, not a predicted event or a deadline to act.",
+    ],
+    sections,
+    focus: `${strategy}. ${authorityPractice(authority)}`,
   };
 }

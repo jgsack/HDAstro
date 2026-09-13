@@ -8,6 +8,7 @@ interface Props {
   transitDurations: TransitDuration[];
   strategy: string;
   authority: string;
+  asOf: Date;
 }
 
 const ASPECT_COLOR: Record<string, string> = {
@@ -23,9 +24,9 @@ const ASPECT_SYMBOL: Record<string, string> = {
 };
 
 export default function DailyTransits({
-  items, chartFingerprint, transitDurations, strategy, authority,
+  items, chartFingerprint, transitDurations, strategy, authority, asOf,
 }: Props) {
-  const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const today = asOf.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   const durationByBody = new Map<string, TransitDuration>(
     transitDurations.map(duration => [duration.body, duration]),
   );
@@ -42,6 +43,7 @@ export default function DailyTransits({
         items={items}
         strategy={strategy}
         authority={authority}
+        asOf={asOf}
       />
 
       <section>

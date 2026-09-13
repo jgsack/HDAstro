@@ -124,6 +124,23 @@ If browser settings differ from the committed default birth chart, the app
 does not show a potentially mismatched synthesis. The live detailed transit
 lists continue to use the browser's saved settings.
 
+When the written reading is stale or belongs to a different chart, the Today
+tab explicitly labels its live interpretation as rule-based. These editorial
+rules select distinct natal contacts, avoid counting both nodal endpoints as
+independent evidence, and include a faster contact alongside slow influences.
+Every section separates its interpretation, a concrete question or example,
+and the calculated chart evidence. This fallback is not a fresh AI synthesis.
+
+For future written readings, retain `date`, `generatedAt`, `chartFingerprint`,
+`headline`, two `summary` paragraphs, and `focus`. Add `sections`, each with
+`title`, `evidence`, `meaning`, and `practice`. Name the actual planet/aspect/
+natal point or gate/channel in the evidence, with the time zone for authored
+times. Interpret the combined pattern, give plausible everyday examples as
+possibilities, and ask concrete questions. Distinguish slow themes from brief
+contacts; an exact crossing is not a predicted event. Do not infer personal
+events, promise outcomes, or substitute generic encouragement for interpretation.
+Use the saved natal Authority rather than assigning a new one from transits.
+
 ## Deployment
 
 ### OpenAI Sites

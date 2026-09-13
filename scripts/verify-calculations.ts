@@ -124,12 +124,28 @@ const liveSynthesis = buildLiveSynthesis([
     gate: 21,
   },
 ], "Wait for the Invitation", "Emotional");
-assert.equal(liveSynthesis.headline, "Let today’s turning point become information, not a command");
+assert.match(liveSynthesis.headline, /personal priority/);
 assert.equal(liveSynthesis.summary.length, 2);
-assert.match(liveSynthesis.summary[0], /exact at 2:00 PM/);
-assert.match(liveSynthesis.summary[0], /Feeling, instinct, and immediate needs/);
-assert.match(liveSynthesis.summary[1], /Money Line/);
-assert.match(liveSynthesis.summary[1], /stewardship, control, and clean agreements/);
-assert.match(liveSynthesis.focus, /Emotional clarity/);
+assert.match(liveSynthesis.sections![0].evidence, /exact 2:00 PM/);
+assert.match(liveSynthesis.sections![0].evidence, /natal Sun/);
+assert.match(liveSynthesis.sections![0].practice, /manageable task/);
+assert.match(liveSynthesis.sections![1].meaning, /Money Line/);
+assert.match(liveSynthesis.sections![1].practice, /accountable/);
+assert.match(liveSynthesis.focus, /different mood/);
+
+// Opposite nodal endpoints must not crowd the daily reading with duplicate
+// evidence; a faster contact still belongs alongside slow Jupiter themes.
+const selection = buildLiveSynthesis([
+  { id: "jm", type: "aspect", priority: 90, headline: "Jupiter squares your natal Moon", detail: "Orb 0.1°", transitPlanet: "jupiter", natalPoint: "moon", aspectKey: "square" },
+  { id: "jn", type: "aspect", priority: 80, headline: "Jupiter meets your natal North Node", detail: "Orb 0.2°", transitPlanet: "jupiter", natalPoint: "northnode", aspectKey: "conjunction" },
+  { id: "js", type: "aspect", priority: 79, headline: "Jupiter opposes your natal South Node", detail: "Orb 0.2°", transitPlanet: "jupiter", natalPoint: "southnode", aspectKey: "opposition" },
+  { id: "mm", type: "aspect", priority: 60, headline: "Moon trines your natal Mercury", detail: "exact 11:22 AM", transitPlanet: "moon", natalPoint: "mercury", aspectKey: "trine", isExactToday: true },
+], "Wait for the Invitation", "Emotional");
+assert.equal(selection.sections!.length, 3);
+assert.ok(!selection.sections!.some(section => section.evidence.includes("South Node")));
+assert.match(selection.sections![2].title, /Brief lunar contact/);
+assert.notEqual(selection.sections![0].meaning, selection.sections![1].meaning);
+assert.match(selection.sections![0].practice, /recovery time/);
+assert.ok(dailySynthesis.sections.every(section => section.evidence && section.meaning && section.practice));
 
 console.log("Calculation verification passed.");

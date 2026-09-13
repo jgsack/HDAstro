@@ -114,6 +114,7 @@ export default function App() {
       <main style={{ flex: 1, padding: "28px 20px" }}>
         {tab === "today" && (
           <DailyTransits
+            asOf={transitTime}
             items={transits}
             chartFingerprint={birthDataFingerprint(birthData)}
             transitDurations={transitDurations}
