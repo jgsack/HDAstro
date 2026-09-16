@@ -1,0 +1,57 @@
+name: Daily DeepSeek reading
+
+on:
+  schedule:
+    # Hourly wakeups retry failures; date/hour guard permits one reading after 3am Pacific.
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hdastro-daily-reading
+  cancel-in-progress: false
+
+jobs:
+  reading:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TZ: America/Los_Angeles
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/repository-handoff
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check whether a reading is due
+        id: due
+        run: node scripts/generate-daily-reading.mjs --due
+      - name: Install dependencies
+        if: steps.due.outputs.needed == 'true'
+        run: npm ci
+      - name: Calculate today's chart
+        if: steps.due.outputs.needed == 'true'
+        run: node scripts/daily-workflow.mjs context
+      - name: Write interpretation with DeepSeek
+        if: steps.due.outputs.needed == 'true'
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: node scripts/generate-daily-reading.mjs
+      - name: Validate reading, calculations, and build
+        if: steps.due.outputs.needed == 'true'
+        run: |
+          node --test scripts/generate-daily-reading.test.mjs
+          node scripts/daily-workflow.mjs check
+          npm run build:vercel
+      - name: Publish reading source to Vercel production branch
+        if: steps.due.outputs.needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/daily-synthesis.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Publish daily DeepSeek interpretation"
+          git push origin HEAD:agent/repository-handoff

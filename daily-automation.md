@@ -1,5 +1,25 @@
 # Daily authored reading and publication
 
+## Superseded: GitHub Actions now owns daily generation
+
+The older cloud task must NOT execute the legacy steps below. Do not generate,
+commit, or publish independently; this prevents competing writers and obsolete
+Sites publishes. `.github/workflows/daily-reading.yml` uses DEEPSEEK_API_KEY
+from GitHub Actions secrets and checks out `agent/repository-handoff`.
+Hourly wakeups at minute 17 check the Pacific date. After 3 a.m., generation
+is due only if today's reading is absent. Failed runs can retry on the next
+wakeup; GitHub scheduling may be delayed. Manual dispatch forces regeneration.
+Validation, calculation tests, lint, and the Vercel build precede committing
+only data/daily-synthesis.json. Check Vercel deployment status separately;
+a successful GitHub commit alone is not proof of a successful deployment.
+
+This generates the committed default chart's reading. Private browser charts
+are not sent to this workflow. The separate on-demand Vercel endpoint still
+requires its own credentials and access code; GitHub secrets do not transfer
+to Vercel automatically.
+
+## Legacy procedure (historical reference only; do not execute)
+
 Scope: only Chart & Design, repository `jgsack/HDAstro`, branch
 `agent/repository-handoff`. Preserve the Sites identity in `.openai/hosting.json`.
 Do not run or modify unrelated websites or schedules.

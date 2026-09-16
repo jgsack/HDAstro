@@ -42,7 +42,7 @@ Add a case to `scripts/verify-calculations.ts` for every calculation bug fixed.
 - Never commit API keys, tokens, passwords, connection strings, or `.env` files.
 - The committed default birth data is publicly visible. Treat any replacement
   personal data as a deliberate privacy decision.
-- The cloud task commits the default-chart daily reading as
+- GitHub Actions uses the repository DEEPSEEK_API_KEY secret to commit the default-chart daily reading as
   `data/daily-synthesis.json`. User-requested on-demand readings use the Vercel
   server function `api/reading.mjs`. API keys remain server-only; never use a
   VITE_ prefix. Birth settings remain client-only; only derived transit context
@@ -51,8 +51,9 @@ Add a case to `scripts/verify-calculations.ts` for every calculation bug fixed.
 
 ## Deployment
 
-- GitHub is the durable source repository and OpenAI Sites is the production
-  host.
+- GitHub is the durable source repository. Vercel is now the production host
+  at hd-astro.vercel.app, tracking agent/repository-handoff with
+  npm run build:vercel and output dist-vercel. Preserve the former Sites configuration.
 - `.openai/hosting.json` contains the opaque Sites project identity and must be
   preserved. Do not invent or replace that ID.
 - Sites uses the supported vinext and Cloudflare runtime. Its worker entry is
@@ -61,6 +62,7 @@ Add a case to `scripts/verify-calculations.ts` for every calculation bug fixed.
 - GitHub Pages is not configured.
 - Publishing a new hosted version remains an explicit deployment task, not an
   implicit side effect of ordinary feature work.
-- The daily automation is an explicit exception: after updating only the
-  current synthesis and validating the site, it commits and republishes the
-  existing public Sites project.
+- The daily GitHub Actions automation is an explicit exception: after updating
+  only the current synthesis and validating the site, it commits to the Vercel
+  production branch for automatic deployment. The older cloud authoring task
+  must not independently generate, commit, or publish readings.
