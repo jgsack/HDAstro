@@ -113,6 +113,25 @@ other sensitive personal information.
 
 ## Interpretation layer
 
+### On-demand readings on Vercel
+
+The Today tab can request an AI interpretation for the locally saved chart.
+Vercel's `api/reading.mjs` uses OpenAI Responses with structured output and
+`store: false`. Configure server-only Production environment variables
+`OPENAI_API_KEY` and a strong, private `READING_ACCESS_CODE`, then redeploy.
+Never put either in a VITE_ variable or source control. Optional
+`OPENAI_READING_MODEL` defaults to `gpt-5.4-mini`.
+
+The access code gates the paid endpoint; it is not stored by the UI. Only
+calculated contact descriptions, Strategy, Authority, date and time zone are
+sent. Raw birth settings stay client-only. Successful readings are cached in
+localStorage by chart fingerprint and local day; the UI allows one generation
+per cached chart/day. This client cache is not a billing limit: protect the
+access code and configure spending controls in the API account. The request
+has bounded input, output and timeout. Missing secrets fail closed with a
+clear message; existing readings remain visible. Sites does not host this
+Vercel function. Test with `node scripts/verify-reading-api.mjs`.
+
 The cloud task runs `npm run daily:context` to calculate and rank the current
 astrology and Human Design transits for the committed default birth chart. It
 then prioritizes, reconciles, and synthesizes the combined pattern into

@@ -42,9 +42,12 @@ Add a case to `scripts/verify-calculations.ts` for every calculation bug fixed.
 - Never commit API keys, tokens, passwords, connection strings, or `.env` files.
 - The committed default birth data is publicly visible. Treat any replacement
   personal data as a deliberate privacy decision.
-- AI interpretation is produced by the cloud-scheduled task and committed as
-  `data/daily-synthesis.json`. The public app makes no model calls and contains
-  no AI credential.
+- The cloud task commits the default-chart daily reading as
+  `data/daily-synthesis.json`. User-requested on-demand readings use the Vercel
+  server function `api/reading.mjs`. API keys remain server-only; never use a
+  VITE_ prefix. Birth settings remain client-only; only derived transit context
+  is sent after the user explicitly requests generation. Protect the paid
+  endpoint with READING_ACCESS_CODE; fail closed if either secret is absent.
 
 ## Deployment
 

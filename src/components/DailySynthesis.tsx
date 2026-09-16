@@ -1,6 +1,8 @@
 import dailySynthesis from "../../data/daily-synthesis.json";
 import { buildLiveSynthesis, type DailySynthesisContent } from "../lib/dailySynthesis";
 import type { TransitItem } from "../lib/transits";
+import { useCallback, useState } from "react";
+import GenerateReading, { type GeneratedReading } from "./GenerateReading";
 
 interface Props {
   chartFingerprint: string;
@@ -18,12 +20,17 @@ function localDateKey(date: Date): string {
 }
 
 export default function DailySynthesis({ chartFingerprint, items, strategy, authority, asOf }: Props) {
+  const date = localDateKey(asOf);
+  const cacheKey = `chart-design:ai-reading:v1:${chartFingerprint}:${date}`;
+  const [generated, setGenerated] = useState<{ key: string; value: GeneratedReading } | null>(null);
+  const receive = useCallback((value: GeneratedReading) => setGenerated({ key: cacheKey, value }), [cacheKey]);
+  const current = generated?.key === cacheKey ? generated.value : null;
   const isToday = dailySynthesis.date === localDateKey(asOf);
   const matchesChart = dailySynthesis.chartFingerprint === chartFingerprint;
   const isReady = isToday && matchesChart;
-  const synthesis: DailySynthesisContent = isReady
+  const synthesis: DailySynthesisContent = current?.reading ?? (isReady
     ? dailySynthesis
-    : buildLiveSynthesis(items, strategy, authority);
+    : buildLiveSynthesis(items, strategy, authority));
 
   return (
     <section style={{
@@ -49,8 +56,9 @@ export default function DailySynthesis({ chartFingerprint, items, strategy, auth
 
       <div style={{ position: "relative" }}>
           <p style={{ color: "var(--text-muted)", fontSize: 14, margin: "0 0 12px" }}>
-            {isReady ? `Written for ${dailySynthesis.date}` : "Rule-based interpretation of your current chart"}
+            {current ? `AI reading generated ${new Date(current.generatedAt).toLocaleString()}` : isReady ? `Written for ${dailySynthesis.date}` : "Rule-based interpretation of your current chart"}
           </p>
+          <GenerateReading key={cacheKey} cacheKey={cacheKey} date={date} asOf={asOf} items={items} strategy={strategy} authority={authority} onReading={receive} />
           <h2 style={{ fontSize: 20, lineHeight: 1.25, margin: "0 0 10px" }}>{synthesis.headline}</h2>
           {synthesis.summary.map((paragraph, index) => (
             <p key={index} style={{
@@ -71,7 +79,7 @@ export default function DailySynthesis({ chartFingerprint, items, strategy, auth
               </details>
             </section>
           ))}
-          {!isReady && (
+          {!isReady && !current && (
             <details style={{ marginTop: 18, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6 }}>
               <summary style={{ cursor: "pointer" }}>About this reading</summary>
               <p>{matchesChart ? `The last written reading is dated ${dailySynthesis.date}.` : "The saved written reading is for a different birth chart."} This interpretation uses editorial rules matched to your live natal contacts and gate activations. It is not a newly authored AI synthesis. Examples are possibilities to consider, not claims about events in your life.</p>
