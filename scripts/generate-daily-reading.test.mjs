@@ -34,3 +34,36 @@ test("rejects invented evidence and deterministic claims", async () => {
   await assert.rejects(generate(context, "test", respond({ ...valid, headline: "A fated change in direction" })), /deterministic/);
   await assert.rejects(generate(context, "test", respond({ ...valid, sections: valid.sections.map(s => ({ ...s, sourceIds: ["invented"] })) })), /Unknown chart/);
 });
+test("repairs missing references with a consistent prompt and bounded feedback", async () => {
+  let calls = 0;
+  const result = await generate(context, "test", async (_url, options) => {
+    const body = JSON.parse(options.body);
+    assert.match(body.messages[0].content, /"sourceIds":\[/);
+    assert.doesNotMatch(body.messages[0].content, /"evidence":/);
+    calls++;
+    if (calls === 2) {
+      assert.equal(body.messages.at(-2).role, "assistant");
+      assert.match(body.messages.at(-1).content, /failed validation.*sourceIds/);
+    }
+    const draft = calls === 1 ? valid : { ...valid, sections: valid.sections.map(s => ({ ...s, sourceIds: ["real-contact"] })) };
+    return { ok: true, json: async () => ({ choices: [{ finish_reason: "stop", message: { content: JSON.stringify(draft) } }] }) };
+  });
+  assert.equal(calls, 2);
+  assert.match(result.sections[0].evidence, /calculated chart source/);
+});
+test("stops after three invalid responses without accepting ungrounded content", async () => {
+  let calls = 0;
+  await assert.rejects(generate(context, "test", async () => {
+    calls++;
+    return { ok: true, json: async () => ({ choices: [{ finish_reason: "stop", message: { content: "{invalid" } }] }) };
+  }), /after 3 attempts: Response must be valid JSON/);
+  assert.equal(calls, 3);
+});
+test("does not retry provider authentication or billing failures", async () => {
+  let calls = 0;
+  await assert.rejects(generate(context, "test", async () => {
+    calls++;
+    return { ok: false, status: 401 };
+  }), /HTTP 401/);
+  assert.equal(calls, 1);
+});
