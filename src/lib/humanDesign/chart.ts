@@ -2,7 +2,7 @@ import { Origin, Horoscope } from "circular-natal-horoscope-js";
 import type { BirthData } from "../../config/birthData";
 import { longitudeToGateLine, GATE_NAMES } from "./gateTable";
 import {
-  CHANNELS, AUTHORITY_HIERARCHY,
+  CHANNELS, MOTOR_CENTERS,
   type CenterName, type HDType,
 } from "./centersChannels";
 
@@ -124,7 +124,7 @@ function getActivations(lons: Record<string, number>, isPersonality: boolean): H
   });
 }
 
-function deriveChart(allActivations: HDActivation[]): Omit<HDChart, "activations"> {
+export function deriveChart(allActivations: HDActivation[]): Omit<HDChart, "activations"> {
   // Collect all activated gates
   const activeGates = new Set(allActivations.map(a => a.gate));
 
@@ -148,16 +148,38 @@ function deriveChart(allActivations: HDActivation[]): Omit<HDChart, "activations
   const hasSacral = definedCenters.includes("sacral");
   const throatDefined = definedCenters.includes("throat");
 
-  // Check if any motor connects to throat
-  const motorToThroatChannel = definedChannels.find(dch => {
+  // Type depends on definition connectivity, not only on a single channel
+  // whose endpoints happen to be a motor and the Throat. Build the center
+  // graph so indirect paths (for example Root -> Spleen -> Throat) count.
+  const centerGraph = new Map<CenterName, Set<CenterName>>();
+  for (const center of definedCenters) centerGraph.set(center, new Set());
+  for (const dch of definedChannels) {
     const chDef = CHANNELS.find(c => c.gate1 === dch.gate1 && c.gate2 === dch.gate2);
-    if (!chDef) return false;
-    const isThroadEnd = chDef.center1 === "throat" || chDef.center2 === "throat";
-    const motorEnd = chDef.center1 === "heart" || chDef.center1 === "sacral" || chDef.center1 === "solar_plexus" || chDef.center1 === "root"
-      || chDef.center2 === "heart" || chDef.center2 === "sacral" || chDef.center2 === "solar_plexus" || chDef.center2 === "root";
-    return isThroadEnd && motorEnd;
-  });
-  const hasMotorToThroat = !!motorToThroatChannel;
+    if (!chDef) continue;
+    centerGraph.get(chDef.center1)?.add(chDef.center2);
+    centerGraph.get(chDef.center2)?.add(chDef.center1);
+  }
+
+  function centersConnected(from: CenterName, to: CenterName): boolean {
+    if (!centerGraph.has(from) || !centerGraph.has(to)) return false;
+    const visited = new Set<CenterName>([from]);
+    const queue: CenterName[] = [from];
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (current === to) return true;
+      for (const next of centerGraph.get(current) ?? []) {
+        if (!visited.has(next)) {
+          visited.add(next);
+          queue.push(next);
+        }
+      }
+    }
+    return false;
+  }
+
+  const hasMotorToThroat = throatDefined && MOTOR_CENTERS.some(
+    motor => definedCenters.includes(motor) && centersConnected(motor, "throat"),
+  );
 
   let type: HDType;
   if (definedCenters.length === 0) {
@@ -172,17 +194,24 @@ function deriveChart(allActivations: HDActivation[]): Omit<HDChart, "activations
     type = "Projector";
   }
 
-  // Authority
-  let authority = "Mental";
+  // Inner Authority hierarchy. If the Heart is reached here, any Heart channel
+  // with a higher-priority center has already been handled; the remaining
+  // possibilities are Ego-manifested or Ego-projected authority. A non-
+  // Reflector without an inner authority uses an environmental/sounding-board
+  // process.
+  let authority = "Environmental";
   if (type === "Reflector") {
     authority = "Lunar";
-  } else {
-    for (const { center, authority: auth } of AUTHORITY_HIERARCHY) {
-      if (definedCenters.includes(center)) {
-        authority = auth;
-        break;
-      }
-    }
+  } else if (definedCenters.includes("solar_plexus")) {
+    authority = "Emotional";
+  } else if (definedCenters.includes("sacral")) {
+    authority = "Sacral";
+  } else if (definedCenters.includes("spleen")) {
+    authority = "Splenic";
+  } else if (definedCenters.includes("heart")) {
+    authority = "Ego/Heart";
+  } else if (definedCenters.includes("g") && centersConnected("g", "throat")) {
+    authority = "Self-Projected";
   }
 
   // Strategy
