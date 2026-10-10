@@ -1,0 +1,151 @@
+import assert from "node:assert/strict";
+import dailySynthesis from "../data/daily-synthesis.json";
+import { DEFAULT_BIRTH_DATA } from "../src/config/birthData";
+import { birthDataFingerprint, buildLiveSynthesis } from "../src/lib/dailySynthesis";
+import { deriveChart, type HDActivation, type HDChart } from "../src/lib/humanDesign/chart";
+import { computeTransitDuration, eclipticLongitude } from "../src/lib/transitDuration";
+import { getTodaysTransits } from "../src/lib/transits";
+import type { NatalChart } from "../src/lib/natalChart";
+
+function activations(gates: number[]): HDActivation[] {
+  return gates.map(gate => ({
+    planet: "test",
+    gate,
+    line: 1,
+    gateName: "",
+    isPersonality: true,
+  }));
+}
+
+// Root -> Spleen -> Throat is an indirect motor connection. The old direct-
+// channel check incorrectly called this chart a Projector.
+const manifestor = deriveChart(activations([54, 32, 20, 57]));
+assert.equal(manifestor.type, "Manifestor");
+assert.equal(manifestor.authority, "Splenic");
+
+// Adding a defined Sacral makes the same motorized-Throat chart an MG.
+const manifestingGenerator = deriveChart(activations([54, 32, 20, 57, 3, 60]));
+assert.equal(manifestingGenerator.type, "Manifesting Generator");
+assert.equal(manifestingGenerator.authority, "Sacral");
+
+// The 25-51 definition is Ego-projected authority even without a Throat path.
+const egoProjector = deriveChart(activations([25, 51]));
+assert.equal(egoProjector.type, "Projector");
+assert.equal(egoProjector.authority, "Ego/Heart");
+
+// Locate a real mean-node date inside the line that crosses 360°/0°, then
+// ensure both nodes have a positive duration containing the requested moment.
+let wrapDate: Date | null = null;
+for (
+  let date = new Date("1900-01-01T12:00:00Z"), i = 0;
+  i < 80_000;
+  date = new Date(date.getTime() + 86_400_000), i += 1
+) {
+  if (eclipticLongitude("northnode", date) > 359.3) {
+    wrapDate = date;
+    break;
+  }
+}
+assert.ok(wrapDate, "Expected to find a lunar-node date near 360°");
+for (const body of ["northnode", "southnode"] as const) {
+  const duration = computeTransitDuration(body, wrapDate);
+  assert.ok(duration.entry && duration.entry < wrapDate);
+  assert.ok(duration.exit && duration.exit > wrapDate);
+  assert.ok(duration.totalMs && duration.totalMs > 0);
+  assert.ok(duration.remainingMs && duration.remainingMs > 0);
+}
+
+const minimalNatalChart: NatalChart = {
+  ascendantDeg: 0,
+  midheavenDeg: 90,
+  ascendantSign: "aries",
+  planets: [{
+    key: "sun",
+    label: "Sun",
+    eclipticDeg: 10,
+    horizonDeg: 10,
+    signKey: "aries",
+    signLabel: "Aries",
+    houseId: 1,
+    isRetrograde: false,
+  }],
+  points: [],
+  houses: [],
+  aspects: [],
+};
+
+const emptyHDChart: HDChart = {
+  type: "Reflector",
+  authority: "Lunar",
+  profile: "1/1",
+  strategy: "Wait a Lunar Cycle",
+  definedCenters: [],
+  definedChannels: [],
+  activations: [],
+};
+
+const transitItems = getTodaysTransits(minimalNatalChart, emptyHDChart);
+const hdBodies = new Set(
+  transitItems.filter(item => item.type === "hd_gate").map(item => item.transitPlanet),
+);
+const expectedHDBodies = [
+  "sun", "earth", "moon", "northnode", "southnode", "mercury", "venus",
+  "mars", "jupiter", "saturn", "uranus", "neptune", "pluto",
+];
+assert.deepEqual([...hdBodies].sort(), [...expectedHDBodies].sort());
+assert.ok(!hdBodies.has("chiron"));
+
+assert.equal(dailySynthesis.chartFingerprint, birthDataFingerprint(DEFAULT_BIRTH_DATA));
+assert.match(dailySynthesis.date, /^\d{4}-\d{2}-\d{2}$/);
+assert.ok(dailySynthesis.headline.length > 10);
+assert.equal(dailySynthesis.summary.length, 2);
+assert.ok(dailySynthesis.focus.length > 20);
+
+const liveSynthesis = buildLiveSynthesis([
+  {
+    id: "test-aspect",
+    type: "aspect",
+    priority: 10,
+    headline: "Transiting Moon trines your natal Sun",
+    detail: "Moon at 1.0° Aries. Orb: 0.10° · applying — exact 2:00 PM",
+    transitPlanet: "moon",
+    natalPoint: "sun",
+    aspectKey: "trine",
+    isExactToday: true,
+    phase: "applying",
+  },
+  {
+    id: "test-gate",
+    type: "hd_gate",
+    priority: 9,
+    headline: "Saturn activates Gate 21 — Biting Through",
+    detail: "Saturn activating Gate 21 line 5. Temporarily completing channel: Money Line",
+    transitPlanet: "saturn",
+    gate: 21,
+  },
+], "Wait for the Invitation", "Emotional");
+assert.match(liveSynthesis.headline, /personal priority/);
+assert.equal(liveSynthesis.summary.length, 2);
+assert.match(liveSynthesis.sections![0].evidence, /exact 2:00 PM/);
+assert.match(liveSynthesis.sections![0].evidence, /natal Sun/);
+assert.match(liveSynthesis.sections![0].practice, /manageable task/);
+assert.match(liveSynthesis.sections![1].meaning, /Money Line/);
+assert.match(liveSynthesis.sections![1].practice, /accountable/);
+assert.match(liveSynthesis.focus, /different mood/);
+
+// Opposite nodal endpoints must not crowd the daily reading with duplicate
+// evidence; a faster contact still belongs alongside slow Jupiter themes.
+const selection = buildLiveSynthesis([
+  { id: "jm", type: "aspect", priority: 90, headline: "Jupiter squares your natal Moon", detail: "Orb 0.1°", transitPlanet: "jupiter", natalPoint: "moon", aspectKey: "square" },
+  { id: "jn", type: "aspect", priority: 80, headline: "Jupiter meets your natal North Node", detail: "Orb 0.2°", transitPlanet: "jupiter", natalPoint: "northnode", aspectKey: "conjunction" },
+  { id: "js", type: "aspect", priority: 79, headline: "Jupiter opposes your natal South Node", detail: "Orb 0.2°", transitPlanet: "jupiter", natalPoint: "southnode", aspectKey: "opposition" },
+  { id: "mm", type: "aspect", priority: 60, headline: "Moon trines your natal Mercury", detail: "exact 11:22 AM", transitPlanet: "moon", natalPoint: "mercury", aspectKey: "trine", isExactToday: true },
+], "Wait for the Invitation", "Emotional");
+assert.equal(selection.sections!.length, 3);
+assert.ok(!selection.sections!.some(section => section.evidence.includes("South Node")));
+assert.match(selection.sections![2].title, /Brief lunar contact/);
+assert.notEqual(selection.sections![0].meaning, selection.sections![1].meaning);
+assert.match(selection.sections![0].practice, /recovery time/);
+assert.ok(dailySynthesis.sections.every(section => section.evidence && section.meaning && section.practice));
+
+console.log("Calculation verification passed.");

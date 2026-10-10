@@ -128,16 +128,18 @@ function nodeLinearCrossings(lineStart: number, lineEnd: number, currentDeg: num
   if (Math.abs(rate) < 1e-9) return { entry: null, exit: null };
 
   if (rate > 0) {
-    const daysSinceEntry = (currentDeg - lineStart) / rate;
-    const daysUntilExit = (lineEnd - currentDeg) / rate;
+    // Use circular distances so Gate 25's lines remain correct when their
+    // boundaries straddle 360°/0°.
+    const daysSinceEntry = norm360(currentDeg - lineStart) / rate;
+    const daysUntilExit = norm360(lineEnd - currentDeg) / rate;
     return {
       entry: new Date(now.getTime() - daysSinceEntry * dayMs),
       exit: new Date(now.getTime() + daysUntilExit * dayMs),
     };
   } else {
     const rateAbs = -rate;
-    const daysSinceEntry = (lineEnd - currentDeg) / rateAbs;
-    const daysUntilExit = (currentDeg - lineStart) / rateAbs;
+    const daysSinceEntry = norm360(lineEnd - currentDeg) / rateAbs;
+    const daysUntilExit = norm360(currentDeg - lineStart) / rateAbs;
     return {
       entry: new Date(now.getTime() - daysSinceEntry * dayMs),
       exit: new Date(now.getTime() + daysUntilExit * dayMs),

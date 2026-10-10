@@ -50,7 +50,7 @@ export default function Settings({ birthData, onSave, onClose }: Props) {
   );
 }
 
-export function Field({ label, value, onChange, step }: { label: string; value: number; onChange: (v: number) => void; step?: number }) {
+function Field({ label, value, onChange, step }: { label: string; value: number; onChange: (v: number) => void; step?: number }) {
   return (
     <label style={{ display: "block", fontSize: 11, color: "var(--text-muted)" }}>
       {label}
@@ -63,13 +63,13 @@ export function Field({ label, value, onChange, step }: { label: string; value: 
   );
 }
 
-export const inputStyle: CSSProperties = {
+const inputStyle: CSSProperties = {
   width: "100%", marginTop: 4, padding: "6px 8px", borderRadius: 6,
   border: "1px solid var(--card-border)", background: "var(--input-bg, #0f172a)",
   color: "var(--text-main)", fontSize: 13, boxSizing: "border-box",
 };
 
-export function btnStyle(primary: boolean): CSSProperties {
+function btnStyle(primary: boolean): CSSProperties {
   return {
     padding: "8px 16px", borderRadius: 6, border: primary ? "none" : "1px solid var(--card-border)",
     background: primary ? "var(--accent, #3b82f6)" : "transparent",
