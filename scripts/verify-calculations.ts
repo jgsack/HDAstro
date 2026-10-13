@@ -98,8 +98,11 @@ assert.ok(!hdBodies.has("chiron"));
 assert.equal(dailySynthesis.chartFingerprint, birthDataFingerprint(DEFAULT_BIRTH_DATA));
 assert.match(dailySynthesis.date, /^\d{4}-\d{2}-\d{2}$/);
 assert.ok(dailySynthesis.headline.length > 10);
-assert.equal(dailySynthesis.summary.length, 2);
-assert.ok(dailySynthesis.focus.length > 20);
+// Accept the retained legacy reading during deployment; new generation is
+// validated strictly as one paragraph by generate-daily-reading.mjs.
+assert.ok(dailySynthesis.summary.length === 1 || dailySynthesis.summary.length === 2);
+assert.ok(dailySynthesis.summary.every(paragraph => paragraph.length > 100));
+if (dailySynthesis.summary.length === 1) assert.equal(dailySynthesis.sections.length, 0);
 
 const liveSynthesis = buildLiveSynthesis([
   {
