@@ -3,12 +3,12 @@ import assert from "node:assert/strict";
 import { dailyDate, generate, validateReading } from "./generate-daily-reading.mjs";
 
 const sentence = "Consider how this specific contact might affect your choices today without assuming it predicts any particular external event or circumstance. ";
-const valid = { headline: "A specific daily interpretation", summary: [sentence.repeat(2), sentence.repeat(2)], focus: sentence, sections: Array.from({ length: 3 }, () => ({ title: "A concrete chart theme", evidence: sentence, meaning: sentence.repeat(3), practice: sentence })) };
-const context = { date: dailyDate(), chartFingerprint: "test-chart", astrologyTransits: [{ id: "real-contact", headline: "A real calculated chart contact", detail: "This detail is copied from the calculated chart source." }], humanDesignTransits: [{}] };
+const valid = { summary: [sentence.repeat(8)], sourceIds: ["real-contact", "real-gate"] };
+const context = { date: dailyDate(), chartFingerprint: "test-chart", astrologyTransits: [{ id: "real-contact", headline: "A real calculated chart contact", detail: "This detail is copied from the calculated chart source." }], humanDesignTransits: [{ id: "real-gate", headline: "A real Human Design activation", detail: "A supplied natal gate is activated today." }] };
 test("Pacific date respects midnight boundary", () => assert.equal(dailyDate(new Date("2026-09-16T06:59:00Z")), "2026-09-15"));
 test("rejects empty and superficial readings", () => {
   assert.throws(() => validateReading({}));
-  assert.throws(() => validateReading({ ...valid, sections: [{ title: "vague" }] }));
+  assert.throws(() => validateReading({ ...valid, summary: ["vague"] }));
 });
 test("fails closed without credential or fresh context", async () => {
   await assert.rejects(generate(context, ""), /missing/);
@@ -23,16 +23,16 @@ test("validates output and uses trusted chart metadata", async () => {
     assert.equal(url, "https://api.deepseek.com/chat/completions");
     assert.equal(options.headers.Authorization, "Bearer test");
     assert.equal(JSON.parse(options.body).response_format.type, "json_object");
-    return { ok: true, json: async () => ({ choices: [{ finish_reason: "stop", message: { content: JSON.stringify({ ...valid, sections: valid.sections.map(s => ({ ...s, sourceIds: ["real-contact"] })), date: "wrong", chartFingerprint: "wrong" }) } }] }) };
+    return { ok: true, json: async () => ({ choices: [{ finish_reason: "stop", message: { content: JSON.stringify({ ...valid, date: "wrong", chartFingerprint: "wrong" }) } }] }) };
   });
   assert.equal(result.date, context.date);
   assert.equal(result.chartFingerprint, context.chartFingerprint);
-  assert.match(result.sections[0].evidence, /copied from the calculated/);
+  assert.match(result.evidence, /copied from the calculated/);
 });
 test("rejects invented evidence and deterministic claims", async () => {
   const respond = draft => async () => ({ ok: true, json: async () => ({ choices: [{ finish_reason: "stop", message: { content: JSON.stringify(draft) } }] }) });
-  await assert.rejects(generate(context, "test", respond({ ...valid, headline: "A fated change in direction" })), /deterministic/);
-  await assert.rejects(generate(context, "test", respond({ ...valid, sections: valid.sections.map(s => ({ ...s, sourceIds: ["invented"] })) })), /Unknown chart/);
+  await assert.rejects(generate(context, "test", respond({ ...valid, summary: [sentence.repeat(8) + " A fated change in direction."] })), /deterministic/);
+  await assert.rejects(generate(context, "test", respond({ ...valid, sourceIds: ["invented", "real-gate"] })), /Unknown chart/);
 });
 test("repairs missing references with a consistent prompt and bounded feedback", async () => {
   let calls = 0;
@@ -45,11 +45,11 @@ test("repairs missing references with a consistent prompt and bounded feedback",
       assert.equal(body.messages.at(-2).role, "assistant");
       assert.match(body.messages.at(-1).content, /failed validation.*sourceIds/);
     }
-    const draft = calls === 1 ? valid : { ...valid, sections: valid.sections.map(s => ({ ...s, sourceIds: ["real-contact"] })) };
+    const draft = calls === 1 ? { summary: valid.summary } : valid;
     return { ok: true, json: async () => ({ choices: [{ finish_reason: "stop", message: { content: JSON.stringify(draft) } }] }) };
   });
   assert.equal(calls, 2);
-  assert.match(result.sections[0].evidence, /calculated chart source/);
+  assert.match(result.evidence, /calculated chart source/);
 });
 test("stops after three invalid responses without accepting ungrounded content", async () => {
   let calls = 0;
@@ -67,3 +67,10 @@ test("does not retry provider authentication or billing failures", async () => {
   }), /HTTP 401/);
   assert.equal(calls, 1);
 });
+
+test("rejects multiple paragraphs and separate issue sections", () => {
+  assert.throws(() => validateReading({ ...valid, summary: [sentence.repeat(8), sentence.repeat(8)] }));
+  assert.throws(() => validateReading({ ...valid, summary: [sentence.repeat(8) + "\nAnother paragraph."] }));
+  assert.throws(() => validateReading({ ...valid, sections: [{ title: "Separate issue" }] }));
+});
+

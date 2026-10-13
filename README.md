@@ -151,10 +151,13 @@ Every section separates its interpretation, a concrete question or example,
 and the calculated chart evidence. This fallback is not a fresh AI synthesis.
 
 For future written readings, retain `date`, `generatedAt`, `chartFingerprint`,
-`headline`, two `summary` paragraphs, and `focus`. Add `sections`, each with
-`title`, `evidence`, `meaning`, and `practice`. Name the actual planet/aspect/
-natal point or gate/channel in the evidence, with the time zone for authored
-times. Interpret the combined pattern, give plausible everyday examples as
+and exactly one `summary` paragraph (120-300 words, ideally 160-220).
+Synthesize astrology and Human Design into one overall daily theme with
+practical guidance inside that paragraph; do not catalogue each alignment or
+add separate issue sections or a focus block. Keep 2-8 supplied `sourceIds`
+covering both systems and calculated `evidence` as metadata.
+The legacy `headline`, empty `sections`, and empty `focus` fields remain for
+type compatibility and are not displayed. Give plausible everyday examples as
 possibilities, and ask concrete questions. Distinguish slow themes from brief
 contacts; an exact crossing is not a predicted event. Do not infer personal
 events, promise outcomes, or substitute generic encouragement for interpretation.

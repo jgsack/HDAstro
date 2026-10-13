@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateReading as validateContent } from "./generate-daily-reading.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // The ephemeris finds crossings in the process's local day. A cloud machine's
@@ -35,19 +36,11 @@ function validateReading() {
   const reading = JSON.parse(readFileSync(resolve(root, "data/daily-synthesis.json"), "utf8"));
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: process.env.TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
-  const words = value => typeof value === "string" ? value.trim().split(/\s+/).filter(Boolean).length : 0;
   requireValue(context.date === today && reading.date === today, "Context and authored reading must both be for today's Pacific date.");
   requireValue(reading.chartFingerprint === context.chartFingerprint, "Reading belongs to a different natal chart.");
   const age = Date.now() - Date.parse(reading.generatedAt);
   requireValue(Number.isFinite(age) && age >= -300_000 && age < 86_400_000, "Reading timestamp is missing, invalid, or stale.");
-  requireValue(words(reading.headline) >= 4, "Reading needs a descriptive headline.");
-  requireValue(Array.isArray(reading.summary) && reading.summary.length === 2 && reading.summary.every(p => words(p) >= 25), "Write two substantive synthesis paragraphs.");
-  requireValue(Array.isArray(reading.sections) && reading.sections.length >= 3 && reading.sections.length <= 5, "Write three to five specific interpretation sections.");
-  for (const section of reading.sections) {
-    requireValue(words(section.title) >= 3 && words(section.evidence) >= 8, "Every section needs a title and named chart evidence.");
-    requireValue(words(section.meaning) >= 40 && words(section.practice) >= 15, "Every section needs an interpretation and a concrete question or practice.");
-  }
-  requireValue(words(reading.focus) >= 12, "The daily focus needs a concrete action or question.");
+  validateContent(reading);
   console.log(`Fresh authored reading verified for ${today}; fingerprint ${context.chartFingerprint}.`);
 }
 
