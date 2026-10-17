@@ -1,9 +1,6 @@
 name: Daily DeepSeek reading
 
 on:
-  schedule:
-    # Hourly wakeups retry failures; date/hour guard permits one reading after 3am Pacific.
-    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -15,6 +12,8 @@ concurrency:
 
 jobs:
   reading:
+    # Disabled at the owner's request. Manual dispatch must not spend API credit.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
