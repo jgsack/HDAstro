@@ -51,6 +51,11 @@ Add a case to `scripts/verify-calculations.ts` for every calculation bug fixed.
 
 ## Deployment
 
+- Updates were stopped at the owner's request on 2026-10-17. Keep the GitHub
+  workflow disabled, its schedule removed, its job blocked, the reading API
+  disabled, and the live chart unmounted. Do not regenerate readings or resume
+  updates without an explicit new request from the owner.
+
 - GitHub is the durable source repository. Vercel is now the production host
   at hd-astro.vercel.app, tracking agent/repository-handoff with
   npm run build:vercel and output dist-vercel. Preserve the former Sites configuration.

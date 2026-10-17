@@ -1,5 +1,9 @@
 # Daily authored reading and publication
 
+STOPPED BY OWNER on 2026-10-17. Do not execute any procedure below, call a
+model, commit readings, or publish updates. Both this legacy task and the
+GitHub workflow must remain disabled until the owner explicitly resumes them.
+
 ## Superseded: GitHub Actions now owns daily generation
 
 The older cloud task must NOT execute the legacy steps below. Do not generate,

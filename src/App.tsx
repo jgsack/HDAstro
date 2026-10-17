@@ -18,6 +18,16 @@ const TRANSIT_BODIES: TransitBody[] = [
 ];
 
 export default function App() {
+  return (
+    <main style={{ maxWidth: 640, margin: "12vh auto", padding: 28, lineHeight: 1.7 }}>
+      <h1>Chart &amp; Design is stopped</h1>
+      <p>Automatic readings and live chart updates have been disabled.</p>
+    </main>
+  );
+}
+
+// Retained for recovery only; this component is no longer mounted.
+export function ArchivedApp() {
   const [birthData, setBirthData] = useState<BirthData>(loadBirthData);
   const [tab, setTab] = useState<Tab>("today");
   const [showSettings, setShowSettings] = useState(false);

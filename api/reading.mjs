@@ -40,7 +40,13 @@ export function validReading(value) {
     && value.sections.every(s => ["title", "evidence", "meaning", "practice"].every(k => typeof s[k] === "string" && s[k].length > 5));
 }
 
-export default async function handler(req, res) {
+export default async function handler(_req, res) {
+  res.setHeader("Cache-Control", "no-store");
+  return res.status(410).json({ error: "Readings have been disabled." });
+}
+
+// Retained implementation for recovery; never invoked by the route.
+export async function archivedHandler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") { res.setHeader("Allow", "POST"); return res.status(405).json({ error: "Use POST." }); }
   if (!process.env.OPENAI_API_KEY || !process.env.READING_ACCESS_CODE) return res.status(503).json({ error: "AI readings are not connected yet. The existing reading remains available." });
